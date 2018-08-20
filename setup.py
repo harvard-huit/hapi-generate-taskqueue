@@ -6,9 +6,10 @@ setup(name='genWorkflowTaskQueue',
       install_requires=[
           'jinja2',
       ],
-      entry_points={
-        'console_scripts': [
-            'genWorkflowTaskQueue = genWorkflowTaskQueue',
-        ]
-    }
+      scripts=['genWorkflowTaskQueue']
+      #entry_points={
+      #  'console_scripts': [
+      #      'genWorkflowTaskQueue = genWorkflowTaskQueue',
+      #  ]
+      #}
 )

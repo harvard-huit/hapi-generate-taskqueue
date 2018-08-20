@@ -8,7 +8,7 @@ setup(name='genWorkflowTaskQueue',
       ],
       entry_points={
         'console_scripts': [
-            'genWorkflowTaskQueue = genWorkflowTaskQueue.__main__:main',
+            'genWorkflowTaskQueue = genWorkflowTaskQueue',
         ]
     }
 )

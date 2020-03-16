@@ -1,7 +1,7 @@
 genWorkflowTaskQueue
 ====================
 
-This package installs scripts that can be run from the command line. Script generates a setup and code structure that can be automatically install within cybercom. The template for generating queues for celery produces a folder with python package. Please see below on installation and operation.
+This package installs scripts that can run from the command line. The script generates a setup and code structure that can automatically be installed within Cybercom. The template for making queues for celery produces a folder with a python package. Please see below on installation and operation.
 
 
 ## Install

@@ -20,3 +20,5 @@ This package installs scripts that can run from the command line. The script gen
         
         # Github create repo
         # Follow instructions to add remote and push
+
+# Code additions

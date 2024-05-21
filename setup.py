@@ -1,11 +1,12 @@
 from setuptools import setup, find_packages
 
-setup(name='genWorkflowTaskQueue',
-      version='0.4',
+setup(name='generateTaskQueues',
+      version='1.0.0',
       packages=find_packages(),
       install_requires=[
           'jinja2',
       ],
-      scripts=['genWorkflowTaskQueue']
+      include_package_data=True,
+      scripts=['generateTaskQueue']
 
       )

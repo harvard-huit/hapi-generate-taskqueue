@@ -1,4 +1,6 @@
 /celeryconfig.py
+venv
+env
 
 *.py[cod]
 .idea

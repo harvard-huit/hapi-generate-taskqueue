@@ -1,0 +1,59 @@
+name: EKS Deploy
+on:
+  push:
+    branches:
+      - 'sand'
+      - 'development'
+      - 'stage'
+      - 'main'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+permissions:
+  id-token: write # This is required for requesting the JWT
+  contents: read  # This is required for actions/checkout
+
+jobs:
+    container-cicd:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Mask Secrets in all logs 
+          run: |
+            varNames=("aws_dev_role" "aws_prod_role" "dev_account_no" "prod_account_no")
+            IFS=' ' read -a MY_SECRETS <<< "${{ secrets.GH_ACTION_SECRET }}"
+            i=$((0))
+            for secret in "${MY_SECRETS[@]}"; do
+              echo "::add-mask::$secret"
+              echo "${varNames[$i]}=${secret}" >> $GITHUB_ENV
+              i=$(( i+1 ))
+            done 
+
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: Set K8s Variables
+          id: k8svars
+          uses: harvard-huit/hapi-action-k8svars@main
+          with:
+            k8s-vars-path: ${{ github.workspace }}/k8s_vars
+            branch-name:  ${{ github.ref_name }}
+
+        - name: Build/Push to ECR Repository
+          uses: harvard-huit/hapi-action-ecrbuild@main
+          with:
+            ecr_role_arn: ${{ steps.k8svars.outputs.target_ecr_role }}
+            target_app_name: ${{ steps.k8svars.outputs.target_app_name }}
+            target_image_tag: ${{ steps.k8svars.outputs.target_image_tag }}
+            target_stack: ${{ steps.k8svars.outputs.target_stack }}
+            aws_region: ${{ steps.k8svars.outputs.aws_region }}
+      
+        - name: Deploy to EKS Cluster
+          uses: harvard-huit/hapi-action-eksdeploy@main
+          with:
+            target_deploy_role: ${{ steps.k8svars.outputs.target_deploy_role }}
+            aws_region: ${{ steps.k8svars.outputs.aws_region }}
+            target_eks_cluster: ${{ steps.k8svars.outputs.target_eks_cluster }}
+            github_runner_ip: ${{ steps.k8svars.outputs.github_runner_ip }}
+            target_stack: ${{ steps.k8svars.outputs.target_stack }}
+            ecr_account_id: ${{ steps.k8svars.outputs.ecr_account_id }}
+            target_vars: ${{ steps.k8svars.outputs.target_vars }}

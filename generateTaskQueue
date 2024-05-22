@@ -42,7 +42,7 @@ def generateTemplate(name, directory):
     # K8s Vars
     os.makedirs(os.path.join(directory, name, "k8s_vars"))
     saveOutput(templateRender(tmpl_k8s_vars, {"queue_name": name}), os.path.join(
-        directory, name,"k8s_vars", "dev_k8s_vars.yaml"))
+        directory, name,"k8s_vars", "dev_k8s_vars.yml"))
 
 templ_initpy = "{{ init_item }}"
 tmpl_readme = """{{ queue_name }} Queue

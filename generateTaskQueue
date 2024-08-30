@@ -41,8 +41,9 @@ def generateTemplate(name, directory):
         directory, name, name, "tasks", "tasks.py"))
     # K8s Vars
     os.makedirs(os.path.join(directory, name, "k8s_vars"))
-    saveOutput(templateRender(tmpl_k8s_vars, {"queue_name": name}), os.path.join(
-        directory, name,"k8s_vars", "dev_k8s_vars.yml"))
+    for stack in ["dev","stage","prod"]:
+        saveOutput(templateRender(tmpl_k8s_vars, {"queue_name": name}), os.path.join(
+            directory, name,"k8s_vars", f"{stack}_k8s_vars.yml"))
 
 templ_initpy = "{{ init_item }}"
 tmpl_readme = """{{ queue_name }} Queue
@@ -130,10 +131,11 @@ nosetests.xml
 """
 tmpl_k8s_vars="""target_app_secrets_ref:
   - HAPI_CELERY_CONFIG: hapi-celery-config
-    CLIENT_KEY_PEM: hapi-rabbitmq-client-key
-    CLIENT_CERT_PEM: hapi-rabbitmq-client-cert
-    TESTCA_CACERT_PEM: hapi-celery-testca-cert
-    CLIENT_MONGO_PEM: hapi-mongodb-client-cert
+    CLIENT_KEY_PEM: hapi-rabbitmq-key
+    CLIENT_CERT_PEM: hapi-rabbitmq-cert
+    TESTCA_CACERT_PEM: hapi-cybercom-ca-cert
+    CLIENT_MONGO_PEM: hapi-mongodb-cert
+    CLIENT_MONGO_CA_PEM: hapi-mongodb-ca-cert
     # APIGEE_X_NONPROD: apigee-service-account-apigee-x-nonprod-406719
     # APIGEE_X_PREPROD: apigee-service-account-apigee-x-preprod
     # APIGEE_X_PROD: apigee-service-account-apigee-x-prod-406719
@@ -146,7 +148,7 @@ target_app_env:
   - name: MONGO_DB
     value: cybercom
   - name: MONGO_HOST
-    value: cybercom-mongo.sand-cybercom.svc.cluster.local
+    value: mongodb.cybercom.svc.cluster.local
   - name: MONGO_LOG_COLLECTION
     value: task_log
   - name: MONGO_PORT
@@ -154,7 +156,7 @@ target_app_env:
   - name: MONGO_TOMBSTONE_COLLECTION
     value: tombstone
   - name: RABBITMQ_HOST
-    value: cybercom-rabbitmq.sand-cybercom.svc.cluster.local
+    value: rabbitmq.cybercom.svc.cluster.local
   - name: RABBITMQ_PORT
     value: "5671"
   - name: RABBITMQ_SSL_CA_FILE
@@ -189,6 +191,8 @@ target_volume_mount:
         path: testca/cacert.pem
       - key: CLIENT_MONGO_PEM
         path: client/mongodb.pem
+      - key: CLIENT_MONGO_CA_PEM
+        path: client/mongodb-ca.pem
   #- name: apigee-auth
   #  mount_path: /xkeys
   #  type: secret
@@ -200,7 +204,7 @@ target_volume_mount:
   #    - key: APIGEE_X_PROD
   #      path: apigee-x-prod.json
 
-target_namespace: celery-workers
+target_namespace: celery-worker
 target_app_name: {{ queue_name }}
 create_service: ''
 """

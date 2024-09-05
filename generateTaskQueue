@@ -206,6 +206,7 @@ target_volume_mount:
 
 target_namespace: celery-worker
 target_app_name: {{ queue_name }}
+target_replica_count: 1
 create_service: ''
 """
 

@@ -15,14 +15,14 @@ COPY . /app/temp
 WORKDIR /app
 
 #Setup Celery User
-RUN addgroup celery && adduser -DH --home /app -G celery celery \
+RUN addgroup celery && adduser --system --home /app --no-create-home --ingroup celery celery \
   && chown celery:celery -R /app
 
 USER celery
 WORKDIR /app
 
 RUN python3 -m venv /app/venv
-RUN source /app/venv/bin/activate
+RUN . /app/venv/bin/activate
 RUN /app/venv/bin/python -m pip install --upgrade pip
 RUN /app/venv/bin/pip install --no-cache-dir -r requirements.txt 
 RUN /app/venv/bin/pip install temp/.

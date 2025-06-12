@@ -134,8 +134,8 @@ tmpl_k8s_vars="""target_app_secrets_ref:
     CLIENT_KEY_PEM: hapi-rabbitmq-key
     CLIENT_CERT_PEM: hapi-rabbitmq-cert
     TESTCA_CACERT_PEM: hapi-cybercom-ca-cert
-    CLIENT_MONGO_PEM: hapi-mongodb-cert
-    CLIENT_MONGO_CA_PEM: hapi-mongodb-ca-cert
+    CLIENT_MONGO_PEM: hapi-mongodb-rs-cert
+    CLIENT_MONGO_CA_PEM: hapi-mongodb-rs-ca-cert
     # APIGEE_X_NONPROD: apigee-service-account-apigee-x-nonprod-406719
     # APIGEE_X_PREPROD: apigee-service-account-apigee-x-preprod
     # APIGEE_X_PROD: apigee-service-account-apigee-x-prod-406719

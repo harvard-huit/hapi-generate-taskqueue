@@ -1,9 +1,10 @@
 #  ARG DOCKER_PYTHON_VERSION=3.9-buster
 # FROM python:$DOCKER_PYTHON_VERSION
-FROM python:alpine3.17
+FROM python:3.12-slim-bookworm
 
 #ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONUNBUFFERED=1 
-RUN apk update && apk add git 
+RUN apt-get update && apt-get install -y git
+# #run apk update && apk add git 
 
 # Celery requirements 
 COPY deploy/celeryconfig.py /app/

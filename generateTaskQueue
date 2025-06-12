@@ -147,12 +147,10 @@ target_app_env:
     value: INFO
   - name: MONGO_DB
     value: cybercom
-  - name: MONGO_HOST
-    value: mongodb.cybercom.svc.cluster.local
+  - name: MONGO_HOSTS
+    value: mongo-rs0.dev.apis.huit.harvard.edu:27017,mongo-rs1.dev.apis.huit.harvard.edu:27017,mongo-rs2.dev.apis.huit.harvard.edu:27017
   - name: MONGO_LOG_COLLECTION
     value: task_log
-  - name: MONGO_PORT
-    value: "27017"
   - name: MONGO_TOMBSTONE_COLLECTION
     value: tombstone
   - name: RABBITMQ_HOST

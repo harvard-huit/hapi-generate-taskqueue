@@ -34,9 +34,8 @@ accept_content = ['json']
 SSL_PATH = os.environ.get('SSL_PATH')
 MONGO_USERNAME = os.environ.get('MONGO_USERNAME')
 MONGO_PASSWORD = celery_secrets['MONGO_PASSWORD']
-MONGO_HOSTNAME = os.environ.get('MONGO_HOST','cybercom-mongo')
-MONGO_PORT = os.environ.get('MONGO_PORT','27017')
-result_backend = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOSTNAME}:{MONGO_PORT}/?ssl=true&tlsCAFile={SSL_PATH}/client/mongodb-ca.pem&tlsCertificateKeyFile={SSL_PATH}/client/mongodb.pem" 
+MONGO_HOSTNAMES = os.environ.get('MONGO_HOSTS','cybercom-mongo')
+result_backend = f"mongodb://{MONGO_USERNAME}:{MONGO_PASSWORD}@{MONGO_HOSTNAMES}/?ssl=true&tlsCAFile={SSL_PATH}/client/mongodb-ca.pem&tlsCertificateKeyFile={SSL_PATH}/client/mongodb.pem"
 
 mongodb_backend_settings = {
     "database": os.environ.get('MONGO_DB', "cybercom"),

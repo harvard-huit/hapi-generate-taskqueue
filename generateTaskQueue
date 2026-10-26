@@ -8,6 +8,13 @@ import sysconfig
 
 site_package_data=os.path.join(sysconfig.get_paths()["purelib"],"generateTaskQueues", "data")
 
+# Per-stack Mongo replica-set hosts. Prod drops the stack segment per the go.apis convention.
+STACK_MONGO_HOSTS = {
+    "dev":   "mongo-rs0.dev.apis.huit.harvard.edu:27017,mongo-rs1.dev.apis.huit.harvard.edu:27017,mongo-rs2.dev.apis.huit.harvard.edu:27017",
+    "stage": "mongo-rs0.stage.apis.huit.harvard.edu:27017,mongo-rs1.stage.apis.huit.harvard.edu:27017,mongo-rs2.stage.apis.huit.harvard.edu:27017",
+    "prod":  "mongo-rs0.apis.huit.harvard.edu:27017,mongo-rs1.apis.huit.harvard.edu:27017,mongo-rs2.apis.huit.harvard.edu:27017",
+}
+
 def copy_and_metadata(from_path, to_path):
     if os.path.exists(to_path):
         raise Exception("Directory already exists")
@@ -39,11 +46,14 @@ def generateTemplate(name, directory):
                os.path.join(directory, name, ".gitignore"))
     saveOutput(templateRender(tmpl_tasks, {}), os.path.join(
         directory, name, name, "tasks", "tasks.py"))
-    # K8s Vars
+    # K8s Vars: shared config in common_k8s_vars.yml; each <stack>_k8s_vars.yml holds only its
+    # deltas (MONGO_HOSTS) and is deep-merged over common by harvard-huit/hapi-action-k8svars.
     os.makedirs(os.path.join(directory, name, "k8s_vars"))
-    for stack in ["dev","stage","prod"]:
-        saveOutput(templateRender(tmpl_k8s_vars, {"queue_name": name}), os.path.join(
-            directory, name,"k8s_vars", f"{stack}_k8s_vars.yml"))
+    saveOutput(templateRender(tmpl_common_k8s_vars, {"queue_name": name}), os.path.join(
+        directory, name, "k8s_vars", "common_k8s_vars.yml"))
+    for stack in ["dev", "stage", "prod"]:
+        saveOutput(templateRender(tmpl_env_k8s_vars, {"stack": stack, "mongo_hosts": STACK_MONGO_HOSTS[stack]}),
+                   os.path.join(directory, name, "k8s_vars", f"{stack}_k8s_vars.yml"))
 
 templ_initpy = "{{ init_item }}"
 tmpl_readme = """{{ queue_name }} Queue
@@ -129,13 +139,18 @@ nosetests.xml
 .project
 .pydevproject
 """
-tmpl_k8s_vars="""target_app_secrets_ref:
+# Shared config for ALL environments. Environment-specific values live in <stack>_k8s_vars.yml
+# and are DEEP-MERGED over these by harvard-huit/hapi-action-k8svars (list values merge by
+# key/name; scalars override). Keep only per-env deltas in the <stack> files.
+tmpl_common_k8s_vars = """target_app_secrets_ref:
   - HAPI_CELERY_CONFIG: hapi-celery-config
     CLIENT_KEY_PEM: hapi-rabbitmq-key
     CLIENT_CERT_PEM: hapi-rabbitmq-cert
     TESTCA_CACERT_PEM: hapi-cybercom-ca-cert
     CLIENT_MONGO_PEM: hapi-mongodb-rs-cert
     CLIENT_MONGO_CA_PEM: hapi-mongodb-rs-ca-cert
+    # Apigee X service-account keys — UNCOMMENT (with the apigee-auth volume mount below) if this
+    # queue calls the Apigee management API. The task reads the file matching its environment.
     # APIGEE_X_NONPROD: apigee-service-account-apigee-x-nonprod-406719
     # APIGEE_X_PREPROD: apigee-service-account-apigee-x-preprod
     # APIGEE_X_PROD: apigee-service-account-apigee-x-prod-406719
@@ -147,8 +162,6 @@ target_app_env:
     value: INFO
   - name: MONGO_DB
     value: cybercom
-  - name: MONGO_HOSTS
-    value: mongo-rs0.dev.apis.huit.harvard.edu:27017,mongo-rs1.dev.apis.huit.harvard.edu:27017,mongo-rs2.dev.apis.huit.harvard.edu:27017
   - name: MONGO_LOG_COLLECTION
     value: task_log
   - name: MONGO_TOMBSTONE_COLLECTION
@@ -191,21 +204,28 @@ target_volume_mount:
         path: client/mongodb.pem
       - key: CLIENT_MONGO_CA_PEM
         path: client/mongodb-ca.pem
-  #- name: apigee-auth
-  #  mount_path: /xkeys
-  #  type: secret
-  #  data_items:
-  #    - key: APIGEE_X_NONPROD
-  #      path: apigee-x-nonprod.json
-  #    - key: APIGEE_X_PREPROD
-  #      path: apigee-x-preprod.json
-  #    - key: APIGEE_X_PROD
-  #      path: apigee-x-prod.json
+  # Apigee X SA keys — UNCOMMENT (with the secret refs above) if this queue calls the Apigee
+  # management API. Mounted at /xkeys; the task reads the file for its environment.
+  # - name: apigee-auth
+  #   mount_path: /xkeys
+  #   type: secret
+  #   data_items:
+  #     - key: APIGEE_X_NONPROD
+  #       path: apigee-x-nonprod.json
+  #     - key: APIGEE_X_PREPROD
+  #       path: apigee-x-preprod.json
+  #     - key: APIGEE_X_PROD
+  #       path: apigee-x-prod.json
 
 target_namespace: celery-worker
 target_app_name: {{ queue_name }}
 target_replica_count: 1
 create_service: ''
+"""
+tmpl_env_k8s_vars = """# {{ stack }}-only overrides, deep-merged over common_k8s_vars.yml.
+target_app_env:
+  - name: MONGO_HOSTS
+    value: {{ mongo_hosts }}
 """
 
 if __name__ == '__main__':

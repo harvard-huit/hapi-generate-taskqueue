@@ -43,7 +43,7 @@ If a dependency has no musllinux wheel and must compile a C extension, add a thr
 - `common_k8s_vars.yml` - everything shared by all environments: secret refs, the RabbitMQ/Mongo/CyberCom volume mounts, `target_namespace: celery-worker`, `target_replica_count`.
 - `dev_k8s_vars.yml`, `stage_k8s_vars.yml`, `prod_k8s_vars.yml` - only the per-environment deltas. Currently that is `MONGO_HOSTS`, which differs for dev, stage and prod.
 
-`harvard-huit/hapi-action-k8svars` deep-merges the stack file over `common_k8s_vars.yml` at deploy time. Keep values that are the same everywhere in the common file, and add an entry to a stack file only when it really differs. Keep the list-valued entries keyed by `name` or `key` so they merge rather than duplicate.
+`harvard-huit/hapi-action-k8svars` deep-merges the stack file over `common_k8s_vars.yml` at deploy time. Keep values that are the same everywhere in the common file, and add an entry to a stack file only when it really differs. On a conflict the stack file wins. `target_app_env`, `target_volume_mount` and `target_sidecars` entries merge by `name`, and `target_app_secrets_ref` by key. Any other list, including a volume mount's `data_items`, is replaced whole by the stack file's copy, so a stack file that changes one item must repeat the full list.
 
 If the queue calls the Apigee X management API, uncomment the `apigee-auth` secret refs and the `apigee-auth` volume mount in `common_k8s_vars.yml`. The task then reads its service-account key from `/xkeys`.
 

@@ -140,8 +140,9 @@ nosetests.xml
 .pydevproject
 """
 # Shared config for ALL environments. Environment-specific values live in <stack>_k8s_vars.yml
-# and are DEEP-MERGED over these by harvard-huit/hapi-action-k8svars (list values merge by
-# key/name; scalars override). Keep only per-env deltas in the <stack> files.
+# and are DEEP-MERGED over these by harvard-huit/hapi-action-k8svars: the <stack> file wins;
+# env vars, volume mounts and sidecars merge by name, secret refs by key; any other list
+# (e.g. data_items) is replaced whole. Keep only per-env deltas in the <stack> files.
 tmpl_common_k8s_vars = """target_app_secrets_ref:
   - HAPI_CELERY_CONFIG: hapi-celery-config
     CLIENT_KEY_PEM: hapi-rabbitmq-key
